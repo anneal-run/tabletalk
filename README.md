@@ -151,7 +151,9 @@ into a view.
   the prompt is not enough for it
 - 67% on Spider is well below the leaderboard: those systems use larger models, few-shot
   examples and schema linking tuned on Spider's train set. This is a zero-shot 7B with a
-  generic prompt. Most misses are valid SQL that answers a slightly different question
+  generic prompt, chosen because it is the largest model that fits an 8 GB GPU at usable
+  speed; the harness itself is model-agnostic. Most misses are valid SQL that answers a
+  slightly different question
 - About 1 in 100 requests the 7B emits tool-call arguments that are not valid JSON; the
   server rejects them and the run ends as `failed` instead of retrying
 - The sandbox has no memory limit on Windows and cannot block network access at the OS
