@@ -6,7 +6,7 @@ Claude Code registration:
     claude mcp add tabletalk -- <path to .venv>/Scripts/tabletalk serve-mcp <db path>
 """
 
-from mcp.server.fastmcp import FastMCP
+from mcp.server.mcpserver import MCPServer
 
 from tabletalk.config import settings
 from tabletalk.schema.index import load_schema, render_schema
@@ -24,7 +24,7 @@ def _session(thread_id: str):
     return _sessions[thread_id]
 
 
-mcp = FastMCP("tabletalk")
+mcp = MCPServer("tabletalk")
 
 
 @mcp.tool()

@@ -4,8 +4,8 @@ import asyncio
 import sqlite3
 import sys
 
-from mcp import ClientSession, StdioServerParameters
-from mcp.client.stdio import stdio_client
+from mcp.client.session import ClientSession
+from mcp.client.stdio import StdioServerParameters, stdio_client
 
 
 def _db(tmp_path):
