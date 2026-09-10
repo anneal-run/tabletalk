@@ -266,6 +266,9 @@ def build_graph(model, checkpointer=None, embed=None):
         status = "answered"
         if state.get("repairs", 0) >= settings.max_repairs and not state.get("sql_ok"):
             status = "failed"
+        elif not state.get("sql_ok") and text.strip().endswith("?"):
+            # the model asked in prose instead of calling ask_user; same outcome for the user
+            status = "clarify"
         if text.count("```") % 2 == 1:  # small models often forget to close the fence
             text = text.rstrip() + "\n```"
         _record(config, Step("node", "verify", 0, detail={"status": status}))

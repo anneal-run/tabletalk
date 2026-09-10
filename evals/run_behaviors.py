@@ -95,8 +95,9 @@ def main() -> int:
     print(f"\n{passed}/{len(results)} passed")
     out = ROOT / "evals" / "results"
     out.mkdir(exist_ok=True)
-    (out / "behaviors.json").write_text(json.dumps(results, indent=2, ensure_ascii=False),
-                                        encoding="utf-8")
+    name = f"behaviors_{args.only}.json" if args.only else "behaviors.json"
+    (out / name).write_text(json.dumps(results, indent=2, ensure_ascii=False),
+                            encoding="utf-8")
     return 0 if passed == len(results) else 1
 
 
