@@ -1,10 +1,9 @@
 FROM python:3.12-slim
 
 WORKDIR /app
-COPY requirements.txt pyproject.toml ./
+COPY pyproject.toml README.md ./
 COPY tabletalk ./tabletalk
-RUN pip install --no-cache-dir --extra-index-url https://download.pytorch.org/whl/cpu \
-    -r requirements.txt && pip install --no-cache-dir -e .
+RUN pip install --no-cache-dir --extra-index-url https://download.pytorch.org/whl/cpu ".[retrieval]"
 COPY scripts ./scripts
 COPY evals ./evals
 

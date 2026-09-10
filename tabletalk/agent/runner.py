@@ -20,7 +20,6 @@ class Turn:
     sql: str | None
     chart_path: str | None
     trace: RunTrace
-    trace_path: Path | None
 
 
 class Session:
@@ -58,12 +57,12 @@ class Session:
         )
         trace.status = state.get("status", "unknown")
         trace.answer = state.get("answer", "")
-        path = write_trace(trace, settings.trace_dir) if self.write_traces else None
+        if self.write_traces:
+            write_trace(trace, settings.trace_dir)
         return Turn(
             answer=state.get("answer", ""),
             status=state.get("status", "unknown"),
             sql=state.get("last_sql"),
             chart_path=state.get("chart_path"),
             trace=trace,
-            trace_path=path,
         )

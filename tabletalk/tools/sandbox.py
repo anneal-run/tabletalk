@@ -1,12 +1,9 @@
-"""Run model-written Python in a separate process with a short leash.
+"""Run model-written Python in a separate process.
 
 Static checks first (module allowlist, no dangerous builtins, no URLs), then a subprocess in
 isolated mode with a wall-clock timeout, a fresh temp directory as cwd, an empty environment
-and a capped output. The last query result is given to the script as result.csv; a chart is
-expected at chart.png.
-
-What this is not: a security boundary against a determined attacker. It stops the model from
-doing the obvious harmful things by accident. Memory limits are not enforced on Windows.
+and capped output. The last query result is given to the script as result.csv; a chart is
+expected at chart.png. Not a security boundary; no memory limit on Windows.
 """
 
 import ast

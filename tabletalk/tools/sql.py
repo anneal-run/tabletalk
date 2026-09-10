@@ -1,9 +1,4 @@
-"""Read-only SQL execution with a parser-level guard.
-
-Two independent layers: the guard rejects anything that is not a single SELECT before it
-reaches SQLite, and the connection itself is opened read-only so a guard bug still cannot
-write. Queries get a LIMIT and a wall-clock timeout so a bad join cannot hang the agent.
-"""
+"""Read-only SQL execution: sqlglot guard, read-only connection, LIMIT and timeout."""
 
 import sqlite3
 import time
@@ -47,7 +42,6 @@ class SqlResult:
     error: str | None = None
 
     def preview(self, n: int = 20) -> str:
-        """Compact text form for the model: header line plus up to n rows."""
         if self.error:
             return f"ERROR: {self.error}"
         if not self.columns:
@@ -102,9 +96,7 @@ def guard_sql(sql: str, max_rows: int) -> str:
 
 
 def open_readonly(db_path: str) -> sqlite3.Connection:
-    conn = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True, check_same_thread=False)
-    conn.row_factory = None
-    return conn
+    return sqlite3.connect(f"file:{db_path}?mode=ro", uri=True, check_same_thread=False)
 
 
 def run_sql(db_path: str, sql: str, max_rows: int = 200, timeout_s: float = 10.0) -> SqlResult:

@@ -27,11 +27,8 @@ SPIDER = ROOT / "data" / "spider" / "spider_data"
 
 
 def find_db(db_id: str) -> Path | None:
-    for cand in (SPIDER / "database" / db_id / f"{db_id}.sqlite",
-                 SPIDER / "test_database" / db_id / f"{db_id}.sqlite"):
-        if cand.exists():
-            return cand
-    return None
+    cand = SPIDER / "database" / db_id / f"{db_id}.sqlite"
+    return cand if cand.exists() else None
 
 
 def execute(db: Path, sql: str, timeout_s: float = 30.0):

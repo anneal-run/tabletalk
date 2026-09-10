@@ -86,10 +86,7 @@ INJECTION_RE = re.compile(
 
 
 def looks_like_injection(text: str) -> bool:
-    """Cheap pattern check on query results. Not a filter: the row is still shown to the
-    model as data; the check only adds a reminder that it is data. Missing a pattern is
-    fine because the system prompt already says the same thing; the note just makes the
-    reminder land next to the offending row, where a small model needs it."""
+    """Decides whether a reminder is appended next to a result. Rows are never filtered."""
     return bool(INJECTION_RE.search(text))
 
 
@@ -198,7 +195,6 @@ def build_graph(model, checkpointer=None, embed=None):
             t0 = time.monotonic()
             used += 1
             if used > settings.max_tool_calls:
-                # a model that fans out into dozens of calls at once is looping, not working
                 content = "ERROR: " + prompts.TOOL_BUDGET_EXHAUSTED
                 _record(config, Step("tool", name, 0, detail={"refused": "tool budget"}))
                 out.append(ToolMessage(content=content, tool_call_id=call_id, name=name))
@@ -222,8 +218,7 @@ def build_graph(model, checkpointer=None, embed=None):
                         content += "\n" + prompts.INJECTION_NOTE
                 if used == settings.max_tool_calls:
                     content += "\n" + prompts.TOOL_BUDGET_EXHAUSTED
-                detail = {"sql": sql, "error": res.error, "rows": res.row_count,
-                          "flagged": looks_like_injection(content)}
+                detail = {"sql": sql, "error": res.error, "rows": res.row_count}
             elif name == "run_python":
                 code = str(args.get("code", ""))
                 target = f"{settings.chart_dir}/{run_id}.png"
@@ -278,9 +273,9 @@ def build_graph(model, checkpointer=None, embed=None):
         if state.get("repairs", 0) >= settings.max_repairs and not state.get("sql_ok"):
             status = "failed"
         elif not state.get("sql_ok") and text.strip().endswith("?"):
-            # the model asked in prose instead of calling ask_user; same outcome for the user
+            # asked in prose instead of calling ask_user
             status = "clarify"
-        if text.count("```") % 2 == 1:  # small models often forget to close the fence
+        if text.count("```") % 2 == 1:
             text = text.rstrip() + "\n```"
         _record(config, Step("node", "verify", 0, detail={"status": status}))
         return {"status": status, "answer": text}

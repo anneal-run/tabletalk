@@ -7,7 +7,7 @@ plus their one-hop foreign-key neighbours so joins stay possible.
 """
 
 import sqlite3
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Callable
 
 import numpy as np
@@ -91,7 +91,6 @@ def render_schema(cards: list[TableCard]) -> str:
 
 
 def estimate_tokens(text: str) -> int:
-    # good enough for a budget check; real tokenizers land within ~20% on schema text
     return len(text) // 4 + 1
 
 
@@ -100,7 +99,6 @@ class SchemaSelection:
     cards: list[TableCard]
     retrieved: bool
     total_tables: int
-    scores: dict[str, float] = field(default_factory=dict)
 
     @property
     def text(self) -> str:
@@ -111,8 +109,8 @@ _embedder: EmbedFn | None = None
 
 
 def default_embedder() -> EmbedFn:
-    """multilingual-e5-small, loaded on first use. Query/passage prefixes are what the model
-    was trained with; without them scores are noticeably worse."""
+    """multilingual-e5-small, loaded on first use. The query:/passage: prefixes are the
+    ones the model was trained with."""
     global _embedder
     if _embedder is None:
         from sentence_transformers import SentenceTransformer
@@ -156,7 +154,6 @@ def select_tables(
         chosen.append(card)
         chosen_names.add(card.name)
         used += cost
-        # one-hop FK neighbours make joins possible even if their own score is low
         for _, ref_table, _ in card.foreign_keys:
             neighbour = by_name.get(ref_table)
             if neighbour and neighbour.name not in chosen_names:
@@ -166,9 +163,4 @@ def select_tables(
                     chosen_names.add(neighbour.name)
                     used += n_cost
     chosen.sort(key=lambda c: c.name)
-    return SchemaSelection(
-        cards=chosen,
-        retrieved=True,
-        total_tables=len(cards),
-        scores={c.name: float(s) for c, s in zip(cards, scores)},
-    )
+    return SchemaSelection(cards=chosen, retrieved=True, total_tables=len(cards))

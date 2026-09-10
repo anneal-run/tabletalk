@@ -1,4 +1,4 @@
-"""Graph behaviour with a scripted model: repair loop, budget, clarification, nudge, chart."""
+"""Graph behaviour with a scripted model."""
 
 import sqlite3
 

@@ -1,7 +1,6 @@
 """Command line interface."""
 
 import os
-import sys
 from pathlib import Path
 
 import typer
@@ -164,11 +163,3 @@ def serve_mcp(db: Path):
     from tabletalk.mcp_server import serve
 
     serve(str(db))
-
-
-def main() -> None:
-    app()
-
-
-if __name__ == "__main__":
-    sys.exit(main())

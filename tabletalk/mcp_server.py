@@ -2,8 +2,8 @@
 
     tabletalk serve-mcp data/chinook.db
 
-Claude Code registration:
-    claude mcp add tabletalk -- <path to .venv>/Scripts/tabletalk serve-mcp <db path>
+Claude Code registration (use .venv/Scripts/tabletalk on Windows):
+    claude mcp add tabletalk -- <repo>/.venv/bin/tabletalk serve-mcp <db path>
 """
 
 from mcp.server.mcpserver import MCPServer

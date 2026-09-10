@@ -1,5 +1,4 @@
-"""Tool schemas the model sees. Execution happens in the graph, which needs the database
-path and the trace; these functions only carry the name, arguments and description."""
+"""Tool schemas the model sees. Execution happens in the graph."""
 
 from langchain_core.tools import tool
 

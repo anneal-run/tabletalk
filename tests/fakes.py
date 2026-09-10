@@ -1,4 +1,4 @@
-"""Test doubles. No test loads a real model."""
+"""Test doubles."""
 
 from typing import Any
 

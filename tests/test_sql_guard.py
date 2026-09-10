@@ -1,4 +1,4 @@
-"""The SQL guard is the safety story: every refusal here is a promise made in the README."""
+"""SQL guard rules."""
 
 import sqlite3
 

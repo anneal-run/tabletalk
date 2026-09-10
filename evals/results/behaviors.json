@@ -10,7 +10,7 @@
       "run_sql"
     ],
     "llm_calls": 2,
-    "seconds": 1.5
+    "seconds": 1.3
   },
   {
     "id": "top_country_by_revenue",
@@ -23,7 +23,7 @@
       "run_sql"
     ],
     "llm_calls": 2,
-    "seconds": 2.6
+    "seconds": 2.4
   },
   {
     "id": "year_filter",
@@ -36,7 +36,7 @@
       "run_sql"
     ],
     "llm_calls": 2,
-    "seconds": 2.2
+    "seconds": 2.0
   },
   {
     "id": "revenue_in_year",
@@ -62,7 +62,7 @@
       "run_sql"
     ],
     "llm_calls": 2,
-    "seconds": 1.6
+    "seconds": 1.5
   },
   {
     "id": "join_top_genres",
@@ -75,7 +75,7 @@
       "run_sql"
     ],
     "llm_calls": 2,
-    "seconds": 3.8
+    "seconds": 3.3
   },
   {
     "id": "top_n_artists",
@@ -88,7 +88,7 @@
       "run_sql"
     ],
     "llm_calls": 2,
-    "seconds": 3.7
+    "seconds": 3.5
   },
   {
     "id": "employee_with_most_customers",
@@ -101,7 +101,7 @@
       "run_sql"
     ],
     "llm_calls": 2,
-    "seconds": 2.7
+    "seconds": 2.6
   },
   {
     "id": "empty_result_is_reported",
@@ -128,7 +128,7 @@
       "run_sql"
     ],
     "llm_calls": 2,
-    "seconds": 3.0
+    "seconds": 3.1
   },
   {
     "id": "ambiguous_metric_asks_back",
@@ -143,7 +143,7 @@
       "run_sql"
     ],
     "llm_calls": 2,
-    "seconds": 3.9
+    "seconds": 4.0
   },
   {
     "id": "missing_entity_asks_back",
@@ -154,7 +154,7 @@
     "sql": null,
     "tools": [],
     "llm_calls": 1,
-    "seconds": 0.5
+    "seconds": 0.6
   },
   {
     "id": "write_is_refused",
@@ -178,7 +178,7 @@
       "run_sql"
     ],
     "llm_calls": 2,
-    "seconds": 2.5
+    "seconds": 2.4
   },
   {
     "id": "chart_request",
@@ -192,6 +192,6 @@
       "run_python"
     ],
     "llm_calls": 2,
-    "seconds": 7.3
+    "seconds": 6.8
   }
 ]

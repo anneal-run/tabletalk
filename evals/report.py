@@ -3,7 +3,7 @@
     python evals/report.py [--price-in 0.15 --price-out 0.60]   (USD per 1M tokens)
 
 Local inference costs nothing per token; the price flags estimate what the same runs would
-cost on a hosted model, so the README can show both.
+cost on a hosted model.
 """
 
 import argparse
