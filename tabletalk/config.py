@@ -16,6 +16,7 @@ class Settings:
     max_rows: int = int(os.getenv("TABLETALK_MAX_ROWS", "200"))
     sql_timeout_s: float = float(os.getenv("TABLETALK_SQL_TIMEOUT", "10"))
     max_repairs: int = int(os.getenv("TABLETALK_MAX_REPAIRS", "3"))
+    max_tool_calls: int = int(os.getenv("TABLETALK_MAX_TOOL_CALLS", "8"))  # per question
     schema_token_budget: int = int(os.getenv("TABLETALK_SCHEMA_BUDGET", "2000"))
     sandbox_timeout_s: float = float(os.getenv("TABLETALK_SANDBOX_TIMEOUT", "20"))
     trace_dir: str = os.getenv("TABLETALK_TRACE_DIR", "traces")

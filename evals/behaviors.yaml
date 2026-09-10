@@ -17,12 +17,12 @@
   answer_contains_any: ["USA", "United States"]
 
 - id: year_filter
-  turns: ["How many invoices were issued in 2013?"]
+  turns: ["How many invoices were issued in 2023?"]
   status: answered
   answer_contains_any: ["83"]
 
 - id: revenue_in_year
-  turns: ["What was the total invoice revenue in 2010?"]
+  turns: ["What was the total invoice revenue in 2022?"]
   status: answered
   answer_contains_any: ["481.45", "481,45"]
 
@@ -57,8 +57,12 @@
   status: answered
   answer_contains_any: ["35"]
 
-- id: ambiguous_question_asks_back
+- id: ambiguous_metric_asks_back
   turns: ["Who is the top customer?"]
+  status: clarify
+
+- id: missing_entity_asks_back
+  turns: ["Show me the total sales for that artist."]
   status: clarify
 
 - id: write_is_refused

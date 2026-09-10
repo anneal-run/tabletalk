@@ -43,6 +43,7 @@ class AgentState(TypedDict, total=False):
     schema_shown: list[str]
     # per-turn fields, reset in prepare
     repairs: int
+    tool_calls: int
     sql_ok: bool
     nudged: bool
     last_sql: str | None
@@ -74,6 +75,23 @@ def _record(config: RunnableConfig, step: Step) -> None:
             cb(step)
 
 
+INJECTION_RE = re.compile(
+    r"ignore (all |any )?(previous|prior|above|your) (instructions|rules|prompt)"
+    r"|you are now (in )?(admin|developer|system)"
+    r"|system (prompt|message|override)"
+    r"|reply only with|respond only with|new instructions?:",
+    re.IGNORECASE,
+)
+
+
+def looks_like_injection(text: str) -> bool:
+    """Cheap pattern check on query results. Not a filter: the row is still shown to the
+    model as data; the check only adds a reminder that it is data. Missing a pattern is
+    fine because the system prompt already says the same thing; the note just makes the
+    reminder land next to the offending row, where a small model needs it."""
+    return bool(INJECTION_RE.search(text))
+
+
 def _to_csv(columns: list[str], rows: list[list]) -> str:
     buf = io.StringIO()
     w = csv.writer(buf)
@@ -93,6 +111,7 @@ def build_graph(model, checkpointer=None, embed=None):
         shown = list(state.get("schema_shown") or [])
         update: dict = {
             "repairs": 0,
+            "tool_calls": 0,
             "sql_ok": False,
             "nudged": False,
             "last_sql": None,
@@ -139,7 +158,8 @@ def build_graph(model, checkpointer=None, embed=None):
         return update
 
     def agent(state: AgentState, config: RunnableConfig) -> dict:
-        exhausted = state.get("repairs", 0) >= settings.max_repairs
+        exhausted = (state.get("repairs", 0) >= settings.max_repairs
+                     or state.get("tool_calls", 0) >= settings.max_tool_calls)
         bound = model if exhausted else model.bind_tools(TOOLS)
         t0 = time.monotonic()
         msg = bound.invoke(state["messages"])
@@ -157,6 +177,7 @@ def build_graph(model, checkpointer=None, embed=None):
         last: AIMessage = state["messages"][-1]
         out: list = []
         repairs = state.get("repairs", 0)
+        used = state.get("tool_calls", 0)
         sql_ok = state.get("sql_ok", False)
         last_sql = state.get("last_sql")
         last_csv = state.get("last_result_csv")
@@ -167,6 +188,13 @@ def build_graph(model, checkpointer=None, embed=None):
         for call in last.tool_calls:
             name, args, call_id = call["name"], call["args"], call["id"]
             t0 = time.monotonic()
+            used += 1
+            if used > settings.max_tool_calls:
+                # a model that fans out into dozens of calls at once is looping, not working
+                content = "ERROR: " + prompts.TOOL_BUDGET_EXHAUSTED
+                _record(config, Step("tool", name, 0, detail={"refused": "tool budget"}))
+                out.append(ToolMessage(content=content, tool_call_id=call_id, name=name))
+                continue
             if name == "run_sql":
                 sql = str(args.get("sql", ""))
                 res = run_sql(state["db_path"], sql, settings.max_rows, settings.sql_timeout_s)
@@ -179,8 +207,15 @@ def build_graph(model, checkpointer=None, embed=None):
                     sql_ok = True
                     last_sql = res.sql
                     last_csv = _to_csv(res.columns, res.rows)
-                    content = res.preview(n=30) + f"\n({res.row_count} rows, {res.elapsed_ms} ms)"
-                detail = {"sql": sql, "error": res.error, "rows": res.row_count}
+                    preview = res.preview(n=30)
+                    content = (f"{prompts.RESULT_HEADER}\n{preview}\n"
+                               f"({res.row_count} rows, {res.elapsed_ms} ms)")
+                    if looks_like_injection(preview):
+                        content += "\n" + prompts.INJECTION_NOTE
+                if used == settings.max_tool_calls:
+                    content += "\n" + prompts.TOOL_BUDGET_EXHAUSTED
+                detail = {"sql": sql, "error": res.error, "rows": res.row_count,
+                          "flagged": looks_like_injection(content)}
             elif name == "run_python":
                 code = str(args.get("code", ""))
                 target = f"{settings.chart_dir}/{run_id}.png"
@@ -207,8 +242,8 @@ def build_graph(model, checkpointer=None, embed=None):
                                  detail=detail))
             out.append(ToolMessage(content=content, tool_call_id=call_id, name=name))
 
-        return {"messages": out, "repairs": repairs, "sql_ok": sql_ok, "last_sql": last_sql,
-                "last_result_csv": last_csv, "chart_path": chart_path}
+        return {"messages": out, "repairs": repairs, "tool_calls": used, "sql_ok": sql_ok,
+                "last_sql": last_sql, "last_result_csv": last_csv, "chart_path": chart_path}
 
     def clarify(state: AgentState, config: RunnableConfig) -> dict:
         last: AIMessage = state["messages"][-1]
