@@ -110,6 +110,14 @@ def test_clarification_ends_the_turn_and_the_reply_continues_it(db):
     assert "ToolMessage" in kinds
 
 
+def test_model_errors_end_the_turn_as_failed(db):
+    s = session(db, [RuntimeError("Failed to parse tool call arguments as JSON")])
+    turn = s.ask("how many customers?")
+    assert turn.status == "failed"
+    assert "model failed" in turn.answer
+    assert turn.trace.steps[-2].detail.get("error", "").startswith("Failed to parse")
+
+
 def test_a_question_asked_in_prose_counts_as_clarification(db):
     s = session(db, [AIMessage("Do you mean by revenue or by number of orders?")])
     turn = s.ask("who is the top customer?")

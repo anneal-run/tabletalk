@@ -11,7 +11,7 @@ from langchain_core.outputs import ChatGeneration, ChatResult
 class ScriptedChatModel(BaseChatModel):
     """Returns the next scripted AIMessage on every call and records what it was asked."""
 
-    responses: list[AIMessage]
+    responses: list[Any]  # AIMessage, or an Exception to raise on that call
     calls: list[list[BaseMessage]] = []
     bound_tools: list[str] = []
 
@@ -24,6 +24,8 @@ class ScriptedChatModel(BaseChatModel):
         if not self.responses:
             raise AssertionError("scripted model ran out of responses")
         msg = self.responses.pop(0)
+        if isinstance(msg, Exception):
+            raise msg
         return ChatResult(generations=[ChatGeneration(message=msg)])
 
     @property

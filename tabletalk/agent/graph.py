@@ -44,6 +44,7 @@ class AgentState(TypedDict, total=False):
     # per-turn fields, reset in prepare
     repairs: int
     tool_calls: int
+    model_error: bool
     sql_ok: bool
     nudged: bool
     last_sql: str | None
@@ -112,6 +113,7 @@ def build_graph(model, checkpointer=None, embed=None):
         update: dict = {
             "repairs": 0,
             "tool_calls": 0,
+            "model_error": False,
             "sql_ok": False,
             "nudged": False,
             "last_sql": None,
@@ -162,7 +164,13 @@ def build_graph(model, checkpointer=None, embed=None):
                      or state.get("tool_calls", 0) >= settings.max_tool_calls)
         bound = model if exhausted else model.bind_tools(TOOLS)
         t0 = time.monotonic()
-        msg = bound.invoke(state["messages"])
+        try:
+            msg = bound.invoke(state["messages"])
+        except Exception as e:  # server-side failure, e.g. malformed tool-call JSON from a 7B
+            _record(config, Step("llm", "agent", int((time.monotonic() - t0) * 1000),
+                                 detail={"error": str(e)[:300]}))
+            return {"messages": [AIMessage(f"The model failed on this question: {str(e)[:200]}")],
+                    "model_error": True}
         usage = getattr(msg, "usage_metadata", None) or {}
         _record(config, Step(
             "llm", "agent", int((time.monotonic() - t0) * 1000),
@@ -259,6 +267,9 @@ def build_graph(model, checkpointer=None, embed=None):
         last: AIMessage = state["messages"][-1]
         text = last.content if isinstance(last.content, str) else str(last.content)
         has_numbers = bool(re.search(r"\d", text))
+        if state.get("model_error"):
+            _record(config, Step("node", "verify", 0, detail={"status": "failed"}))
+            return {"status": "failed", "answer": text}
         if has_numbers and not state.get("sql_ok") and not state.get("nudged") \
                 and state.get("repairs", 0) == 0:
             _record(config, Step("node", "verify", 0, detail={"nudged": True}))
