@@ -12,6 +12,7 @@ def make_chat_model(temperature: float = 0.0) -> ChatOpenAI:
         api_key=settings.api_key,
         model=settings.model,
         temperature=temperature,
-        timeout=120,
+        max_tokens=1024,  # a runaway generation on a 7B is the usual cause of a hung run
+        timeout=180,
         max_retries=1,
     )

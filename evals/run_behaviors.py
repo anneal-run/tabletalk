@@ -67,10 +67,19 @@ def main() -> int:
         tools_used: list[str] = []
         t0 = time.time()
         turn = None
-        for q in case["turns"]:
-            turn = session.ask(q)
-            tools_used += [s.name for s in turn.trace.steps if s.kind == "tool"]
+        error = None
+        try:
+            for q in case["turns"]:
+                turn = session.ask(q)
+                tools_used += [s.name for s in turn.trace.steps if s.kind == "tool"]
+        except Exception as e:  # keep the suite going, count the case as failed
+            error = f"{type(e).__name__}: {str(e)[:120]}"
         elapsed = time.time() - t0
+        if turn is None or error:
+            results.append({"id": case["id"], "pass": False, "failures": [error or "no turn"],
+                            "seconds": round(elapsed, 1)})
+            print(f"FAIL  {case['id']:<32} {'error':<9} {elapsed:5.1f}s  {error}")
+            continue
         failures = check(case, turn, tools_used, db_digest() == before)
         ok = not failures
         results.append({
