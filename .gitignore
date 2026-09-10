@@ -1,0 +1,17 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+bin/
+data/*.db
+data/*.sqlite
+data/spider/
+traces/
+charts/
+checkpoints/
+*.png
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+build/
+dist/
